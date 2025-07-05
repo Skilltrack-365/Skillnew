@@ -19,6 +19,19 @@ export interface Profile {
   company?: string;
   experience_level: 'Beginner' | 'Intermediate' | 'Advanced';
   bio?: string;
+  phone?: string;
+  timezone: string;
+  language: string;
+  notification_preferences: {
+    email: boolean;
+    push: boolean;
+    sms: boolean;
+  };
+  preferences: Record<string, any>;
+  last_login?: string;
+  login_count: number;
+  is_verified: boolean;
+  subscription_tier: string;
   created_at: string;
   updated_at: string;
 }
