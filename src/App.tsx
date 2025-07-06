@@ -9,6 +9,7 @@ import EnrollmentPage from './pages/EnrollmentPage';
 import LabsPage from './pages/LabsPage';
 import LabDetailPage from './pages/LabDetailPage';
 import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
 import AdminPage from './pages/admin/AdminPage';
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
           <Route path="/services/:serviceId" element={<ServicePage />} />
           <Route path="/course/:serviceId/:courseId" element={<CoursePage />} />
           <Route path="/enroll/:serviceId/:courseId" element={<EnrollmentPage />} />

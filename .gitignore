@@ -30,3 +30,6 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 
 # Apply the schema
 supabase db push
+
+# Local Netlify folder
+.netlify

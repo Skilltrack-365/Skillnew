@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, LogOut } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './auth/AuthModal';
+import UserProfile from './UserProfile';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const isHomePage = location.pathname === '/';
   const { user, profile, signOut } = useAuth();
 
@@ -20,6 +23,19 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (showUserMenu && !target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
   const scrollToSection = (sectionId: string) => {
     if (!isHomePage) {
@@ -36,8 +52,19 @@ const Header = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    setShowUserMenu(false);
+    try {
+      console.log('Starting signout process...');
+      await signOut();
+      setShowUserMenu(false);
+      setShowUserProfile(false);
+      console.log('Signout successful, navigating to home...');
+      // Use navigate instead of window.location for better React Router integration
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Signout error:', error);
+      // Still try to redirect even if there's an error
+      navigate('/', { replace: true });
+    }
   };
 
   return (
@@ -94,7 +121,7 @@ const Header = () => {
               </Link>
               
               {user ? (
-                <div className="relative">
+                <div className="relative user-menu-container">
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
@@ -110,6 +137,27 @@ const Header = () => {
                         <p className="text-sm font-medium text-gray-900">{profile?.full_name}</p>
                         <p className="text-xs text-gray-500 capitalize">{profile?.role}</p>
                       </div>
+                      <button
+                        onClick={() => {
+                          console.log('Navigating to dashboard...');
+                          setShowUserMenu(false);
+                          navigate('/dashboard');
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Dashboard
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserProfile(true);
+                          setShowUserMenu(false);
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Profile Settings
+                      </button>
                       {profile?.role === 'admin' && (
                         <Link
                           to="/admin"
@@ -131,7 +179,10 @@ const Header = () => {
                 </div>
               ) : (
                 <button 
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={() => {
+                    console.log('Opening auth modal...');
+                    setShowAuthModal(true);
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
                 >
                   Sign In
@@ -186,6 +237,25 @@ const Header = () => {
                 {user ? (
                   <div className="border-t border-gray-200 pt-4">
                     <p className="text-sm font-medium text-gray-900 mb-2">{profile?.full_name}</p>
+                    <button
+                      onClick={() => {
+                        console.log('Mobile: Navigating to dashboard...');
+                        setIsMenuOpen(false);
+                        navigate('/dashboard');
+                      }}
+                      className="block text-gray-700 hover:text-blue-600 transition-colors mb-2 text-left"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowUserProfile(true);
+                        setIsMenuOpen(false);
+                      }}
+                      className="block text-gray-700 hover:text-blue-600 transition-colors mb-2"
+                    >
+                      Profile Settings
+                    </button>
                     {profile?.role === 'admin' && (
                       <Link
                         to="/admin"
@@ -208,6 +278,7 @@ const Header = () => {
                 ) : (
                   <button 
                     onClick={() => {
+                      console.log('Mobile: Opening auth modal...');
                       setShowAuthModal(true);
                       setIsMenuOpen(false);
                     }}
@@ -225,6 +296,11 @@ const Header = () => {
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)}
+      />
+      
+      <UserProfile
+        isOpen={showUserProfile}
+        onClose={() => setShowUserProfile(false)}
       />
     </>
   );
